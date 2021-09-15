@@ -4,7 +4,7 @@ FactoryBot.define do
     password { 'supersecurepassword' }
   end
 
-  factory :random_user, class: User do
+  factory :random_user, class: User, aliases: [:active_user] do
     email { Faker::Internet.email }
     password { Faker::Internet.password }
 

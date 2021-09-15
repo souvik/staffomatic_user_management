@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
   rescue_from SUM::SelfArchiveError, with: :handle_self_archive_error
+  rescue_from SUM::DesireStatusError, with: :handle_status_error
 
   def index
     render jsonapi: User.all
@@ -7,16 +8,23 @@ class UsersController < ApplicationController
 
   def archive
     user = User.find(params[:id])
-    raise SUM::SelfArchiveError if user == current_user
-    if user.status_archived!
-      user.notify_on_status_change
-      render jsonapi: user
-    end
+    user.update_status_by_action(params[:action], current_user)
+    render jsonapi: user
+  end
+
+  def unarchive
+    user = User.find(params[:id])
+    user.update_status_by_action(params[:action], current_user)
+    render jsonapi: user
   end
 
   private
 
   def handle_self_archive_error(exception)
-    render json: { error: exception.message }, status: :unprocessable_entity
+    unprocessable_entity_error(exception.message)
+  end
+
+  def handle_status_error(exception)
+    unprocessable_entity_error(exception.message)
   end
 end

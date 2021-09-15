@@ -28,6 +28,10 @@ class ApplicationController < ActionController::API
   private
 
   def handle_record_not_found_error(exception)
-    render json: { error: exception.message }, status: :unprocessable_entity
+    unprocessable_entity_error(exception.message)
+  end
+
+  def unprocessable_entity_error(message)
+    render json: { error: message }, status: :unprocessable_entity
   end
 end

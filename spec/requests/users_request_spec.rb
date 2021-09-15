@@ -35,7 +35,7 @@ RSpec.describe 'Users', type: :request do
 
       it 'returns error message' do
         put archive_user_path(user), headers: { "Authentication" => "Bearer #{auth_token}" }
-        expect(response.body).to include('Cannot archive/unarchive yourself')
+        expect(response.body).to include('Cannot archive yourself')
       end
     end
 
@@ -94,8 +94,8 @@ RSpec.describe 'Users', type: :request do
       end
 
       it 'returns error message' do
-        put archive_user_path(user), headers: { "Authentication" => "Bearer #{auth_token}" }
-        expect(response.body).to include('Cannot archive/unarchive yourself')
+        put unarchive_user_path(user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response.body).to include('Cannot unarchive yourself')
       end
     end
 
@@ -114,7 +114,7 @@ RSpec.describe 'Users', type: :request do
         expect(response).to have_http_status(:success)
       end
 
-      it 'change user status' do
+      it 'changes user status' do
         expect{
           put unarchive_user_path(archived_user), headers: { "Authentication" => "Bearer #{auth_token}" }
           archived_user.reload
@@ -133,6 +133,82 @@ RSpec.describe 'Users', type: :request do
       it 'rerurns error message' do
         put unarchive_user_path(active_user), headers: { "Authentication" => "Bearer #{auth_token}" }
         expect(response.body).to include('Provided user is not in archived state')
+      end
+    end
+  end
+
+  describe 'DELETE /delete' do
+    let(:auth_token) { authenticate_user(user) }
+
+    context 'with unauthorized requester' do
+      it 'returns unauthorized response' do
+        delete user_path(user), headers: { 'Authentication': "Bearer UNKOWN_TOKEN" }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'while self-destroying' do
+      it 'returns http error' do
+        delete user_path(user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns error message' do
+        delete user_path(user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response.body).to include('Cannot destroy yourself')
+      end
+    end
+
+    context 'with non-existing user' do
+      it 'returns http error' do
+        delete user_path('unknown-id'), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'with active user' do
+      let(:active_user){ FactoryBot.create(:active_user) }
+
+      it 'returns http success' do
+        delete user_path(active_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'changes user status' do
+        expect{
+          delete user_path(active_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+          active_user.reload
+        }.to change(active_user, :status).from('active').to('deleted')
+      end
+    end
+
+    context 'with archived user' do
+      let(:archived_user){ FactoryBot.create(:archived_user) }
+
+      it 'returns http success' do
+        delete user_path(archived_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'changes user status' do
+        expect{
+          delete user_path(archived_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+          archived_user.reload
+        }.to change(archived_user, :status).from('archived').to('deleted')
+      end
+    end
+
+    context 'with deleted user' do
+      let(:deleted_user){ FactoryBot.create(:deleted_user) }
+
+      it 'returns http error' do
+        delete user_path(deleted_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'rerurns error message' do
+        delete user_path(deleted_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        expect(response.body).to include('Provided user is not in active/archived state')
       end
     end
   end

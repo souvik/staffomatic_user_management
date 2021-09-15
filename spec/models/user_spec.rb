@@ -30,7 +30,7 @@ RSpec.describe User, type: :model do
     it 'raises error during self update' do
       expect {
         logged_in_user.update_status_by_action('archive', logged_in_user)
-      }.to raise_error(SUM::SelfArchiveError)
+      }.to raise_error(SUM::SelfStatusUpdateError)
     end
 
     context 'while archiving' do

@@ -1,7 +1,7 @@
 module SUM
-  class SelfArchiveError < StandardError
-    def message
-      'Cannot archive/unarchive yourself'
+  class SelfStatusUpdateError < StandardError
+    def initialize(action_name)
+      super("Cannot #{action_name} yourself")
     end
   end
 

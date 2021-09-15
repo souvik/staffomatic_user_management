@@ -6,7 +6,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
 
   def update_status_by_action(action_name, requester)
-    raise SUM::SelfArchiveError if self.eql?(requester)
+    raise SUM::SelfStatusUpdateError.new(action_name) if self.eql?(requester)
     case action_name
     when 'archive'
       raise SUM::DesireStatusError.new('active') unless status_active?
@@ -15,7 +15,7 @@ class User < ApplicationRecord
       raise SUM::DesireStatusError.new('archived') unless status_archived?
       status_active!
     when 'destroy'
-      raise SUM::DesireStatusError.new('archived') if status_deleted?
+      raise SUM::DesireStatusError.new('active/archived') if status_deleted?
       status_deleted!
     else
       return

@@ -55,7 +55,7 @@ RSpec.describe 'Users', type: :request do
       end
 
       it 'change user status' do
-        expect{
+        expect {
           put archive_user_path(random_user), headers: { "Authentication" => "Bearer #{auth_token}" }
           random_user.reload
         }.to change(random_user, :status).from('active').to('archived')
@@ -73,6 +73,23 @@ RSpec.describe 'Users', type: :request do
       it 'rerurns error message' do
         put archive_user_path(archived_user), headers: { "Authentication" => "Bearer #{auth_token}" }
         expect(response.body).to include('Provided user is not in active state')
+      end
+    end
+
+    context 'tracking activity' do
+      let(:active_user){ FactoryBot.create(:active_user) }
+
+      it 'logs the activity' do
+        expect {
+          put archive_user_path(active_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        }.to change(user.activity_logs, :count).by(1)
+      end
+
+      it 'will not change status if log activity failed' do
+        allow_any_instance_of(UsersController).to receive(:log_activity).and_raise(ActiveRecord::RecordInvalid)
+        expect {
+          put archive_user_path(active_user), headers: { "Authentication" => "Bearer #{auth_token}" }
+        }.not_to change(active_user, :status)
       end
     end
   end

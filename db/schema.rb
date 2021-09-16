@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_14_175528) do
+ActiveRecord::Schema.define(version: 2021_09_16_083908) do
+
+  create_table "activity_logs", charset: "utf8mb4", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "performed_action", default: "", null: false
+    t.string "action_method", limit: 50, default: "", null: false
+    t.text "payload"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_activity_logs_on_user_id"
+  end
 
   create_table "users", charset: "utf8mb4", force: :cascade do |t|
     t.string "email"
@@ -20,4 +30,5 @@ ActiveRecord::Schema.define(version: 2021_09_14_175528) do
     t.integer "status", default: 1, null: false
   end
 
+  add_foreign_key "activity_logs", "users"
 end

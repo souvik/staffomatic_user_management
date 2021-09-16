@@ -2,6 +2,8 @@ class UsersController < ApplicationController
   rescue_from SUM::SelfStatusUpdateError, with: :handle_self_update_error
   rescue_from SUM::DesireStatusError, with: :handle_status_error
 
+  include Trackable
+
   def index
     render jsonapi: User.all
   end
@@ -21,7 +23,11 @@ class UsersController < ApplicationController
   private
   def modify_status
     user = User.find(params[:id])
-    user.update_status_by_action(params[:action], current_user)
+    raise SUM::SelfStatusUpdateError.new(params[:action]) if user.eql?(current_user)
+    User.transaction do
+      user.update_status_by_action(params[:action])
+      log_activity
+    end
     render jsonapi: user
   end
 

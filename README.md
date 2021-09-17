@@ -126,7 +126,7 @@ $ curl --header \
 ```
 
 ### Archive User
-##### (PUT /users/<USERID>/archive)
+##### (PUT /users/\<USERID\>/archive)
 
 ```bash
 $ curl --request PUT --header \
@@ -136,7 +136,7 @@ $ curl --request PUT --header \
 ```
 
 ### Unarchive User
-##### (PUT /users/<USERID>/unarchive)
+##### (PUT /users/\<USERID\>/unarchive)
 
 ```bash
 $ curl --request PUT --header \
@@ -146,7 +146,7 @@ $ curl --request PUT --header \
 ```
 
 ### Delete User
-##### (DELETE /users/<USERID>)
+##### (DELETE /users/\<USERID\>)
 
 ```bash
 $ curl --request DELETE --header \

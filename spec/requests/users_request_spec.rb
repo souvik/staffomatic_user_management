@@ -10,10 +10,38 @@ RSpec.describe 'Users', type: :request do
   end
 
   describe 'GET /index' do
+    let(:auth_token){ authenticate_user(user) }
+
     it 'returns http success' do
-      auth_token = authenticate_user(user)
       get users_path, headers: { 'Authentication' => "Bearer #{auth_token}" }
       expect(response).to have_http_status(:success)
+    end
+
+    context 'with filter parameter' do
+      let(:archived_user){ FactoryBot.create(:archived_user) }
+      let(:deleted_user){ FactoryBot.create(:deleted_user) }
+
+      it 'returns archived users' do
+        archived_user
+        get users_path(filter: 'archived'), headers: { "Authentication" => "Bearer #{auth_token}" }
+        res_body = JSON.parse response.body
+        expect(res_body['data']['attributes']['status']).to eq('archived')
+      end
+
+      it 'returns deleted users' do
+        deleted_user
+        get users_path(filter: 'deleted'), headers: { "Authentication" => "Bearer #{auth_token}" }
+        res_body = JSON.parse response.body
+        expect(res_body['data']['attributes']['status']).to eq('deleted')
+      end
+
+      it 'returns all users on emtpy filter' do
+        archived_user
+        deleted_user
+        get users_path(filter: ''), headers: { "Authentication" => "Bearer #{auth_token}" }
+        res_body = JSON.parse response.body
+        expect(res_body['data'].size).to be > 1
+      end
     end
   end
 

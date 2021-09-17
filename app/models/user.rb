@@ -7,6 +7,8 @@ class User < ApplicationRecord
 
   validates :email, presence: true, uniqueness: true
 
+  scope :by_status, ->(status){ find_by_status(status) }
+
   def update_status_by_action(action_name)
     case action_name
     when 'archive'

@@ -5,7 +5,12 @@ class UsersController < ApplicationController
   include Trackable
 
   def index
-    render jsonapi: User.all
+    if params[:filter].blank?
+      users = User.all
+    else
+      users = User.by_status(params[:filter])
+    end
+    render jsonapi: users
   end
 
   def archive
